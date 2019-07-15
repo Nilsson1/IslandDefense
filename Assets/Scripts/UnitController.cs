@@ -42,44 +42,30 @@ public class UnitController : MonoBehaviour
     void Start()
     {
         if (!(anim = this.GetComponent<Animator>()))
+        {
             objectHasAnimation = false;
+        }
         else
         {
             animatorController = new AnimatorController(gameObject);
+            //anim.SetFloat("attackSpeed", 1.333f);
         }
-
-        if (!(stats = this.GetComponent<CharacterStats>()))
-            objectHasStats = false;
-
-        if (!(agent = this.GetComponent<NavMeshAgent>()))
-        {
-            objectHasAgent = false;
-        }
-        else
-        {
-            agent.updateRotation = true;
-        }
-
-
-        if (!(rb = this.GetComponent<Rigidbody>()))
-            objectHasRigidBody = false;
 
         stats.CurrentHealth = stats.MaxHealth;
+        Debug.Log(stats.CurrentHealth);
         StartCoroutine("HealOverTime");
-        if (objectHasAnimation)
-        {
-            anim.SetFloat("attackSpeed", 1.333f);
-        }
-
     }
 
     // Update is called once per frame
     void Update()
     {
-
         stats.AttackSpeed = 1.333f / stats.AttackCooldown;
         if (objectHasAnimation)
+        {
             UpdateAnimationSpeed();
+        }
+        //if(gameObjectSelected)
+
     }
 
     void OnGUI()
@@ -111,14 +97,14 @@ public class UnitController : MonoBehaviour
 
     void FixedUpdate()
     {
-        Move(movePoint, stopDist);
+        //Move(movePoint, stopDist);
         //HandleAttack();
     }
 
     private void UpdateAnimationSpeed()
     {
         animatorController.SetMoveSpeed(stats.MoveSpeed);
-        animatorController.SetMoveSpeed(stats.AttackSpeed);
+        animatorController.SetAttackSpeed(stats.AttackSpeed);
     }
 
     private IEnumerator HealOverTime()
@@ -145,13 +131,37 @@ public class UnitController : MonoBehaviour
             //Debug.Log(dist);
             if (dist > radius)
             {
-                //anim.Play("Move");
-                if(animatorController != null)
+                if (animatorController != null)
+                {
                     animatorController.Move();
+                }
+
             }
             else
             {
                 Idle();
+            }
+        }
+    }
+
+    private IEnumerator IMove()
+    {
+        Debug.Log("Entered IMove");
+        while (true)
+        {
+            dist = Vector3.Distance(transform.position, movePoint);
+            if (dist > stopDist)
+            {
+                if (animatorController != null)
+                {
+                    animatorController.Move();
+                }
+                yield return new WaitForFixedUpdate();
+            }
+            else
+            {
+                Idle();
+                yield return null;
             }
         }
     }
@@ -187,7 +197,7 @@ public class UnitController : MonoBehaviour
         Debug.Log("Stopping Attacking Coroutine");
     }
 
-    private void HandleAttack()
+   /* private void HandleAttack()
     {
         while(attackedObject != null)
         {
@@ -217,7 +227,7 @@ public class UnitController : MonoBehaviour
                 }
             }
         }
-    }
+    }*/
 
 
 
@@ -227,6 +237,46 @@ public class UnitController : MonoBehaviour
         EnemyAttackEvent.RegisterListener(OnEnemyUnitAttack);
         LeftMouseSelectEvent.RegisterListener(OnLeftMouseSelected);
         RightMouseSelectEvent.RegisterListener(OnRightMouseClick);
+        PlayerAttackEvent.RegisterListener(OnAttacked);
+    }
+
+    void OnDisable()
+    {
+        UnitDeathEvent.UnregisterListener(OnEnemyUnitDeath);
+        EnemyAttackEvent.UnregisterListener(OnEnemyUnitAttack);
+        LeftMouseSelectEvent.UnregisterListener(OnLeftMouseSelected);
+        RightMouseSelectEvent.UnregisterListener(OnRightMouseClick);
+        PlayerAttackEvent.UnregisterListener(OnAttacked);
+    }
+
+    private void OnAttacked(PlayerAttackEvent attackedEvent)
+    {
+        if(attackedEvent.UnitAttacked == gameObject)
+        {
+            //Take damage.
+            float actualDamageTaken = attackedEvent.UnitStats.Damage;
+            actualDamageTaken -= stats.Armor;
+            Debug.Log("LOL: " + actualDamageTaken);
+            //stats.CurrentHealth -= Mathf.Clamp(actualDamageTaken, 0, float.MaxValue);
+            stats.CurrentHealth = stats.CurrentHealth - actualDamageTaken;
+            Debug.Log("CH: " + stats.CurrentHealth);
+            Debug.Log(gameObject.name + " took " + actualDamageTaken + " damage from " + attackedEvent.UnitAttacker.name);
+            if(stats.CurrentHealth <= 0)
+            {
+                Die(gameObject, attackedEvent.UnitAttacker);
+            }
+        }
+    }
+
+    private void Die(GameObject gameObj, GameObject killer)
+    {
+        UnitDeathEvent unitDeath = new UnitDeathEvent();
+        unitDeath.expDropped = 50;
+        unitDeath.UnitDied = gameObj;
+        unitDeath.UnitKiller = killer;
+        unitDeath.FireEvent();
+        
+        Destroy(gameObj);
     }
 
     private void OnRightMouseClick(RightMouseSelectEvent rightClick)
@@ -235,34 +285,63 @@ public class UnitController : MonoBehaviour
         {
             return;
         }
+        //Debug.Log(rightClick.clicker.name);
+        if(rightClick.clicker.transform.parent == null)
+        {
+            Debug.Log("No parent found!");
+            return;
+        }
 
+        Debug.Log(transform.name + " " + rightClick.clicker.transform.parent.name);
+
+        if("Player1GameObject" != rightClick.clicker.transform.parent.name)
+        {
+            return;
+        }
 
         attack = false;
         rdyToAttack = false;
         movePoint = Vector3.zero;
         rayMove = true;
 
-        if (!rightClick.rightClickGameObject.transform.IsChildOf(transform.parent) && rightClick.rightClickGameObject.tag == "AttackAble")
+
+        //Debug.Log(rightClick.rightClickGameObject.name);
+
+        if (rightClick.rightClickGameObject.transform.parent != transform.parent && rightClick.rightClickGameObject.tag != "Environment")
         {
             attackedObject = rightClick.rightClickGameObject;
 
             attack = true;
             movePoint = rightClick.rightClickGameObject.transform.position;
             stopDist = 2.5f;
-
+            StartCoroutine("IMove");
             StartCoroutine("IHandleAttack");
 
             InteractWithGameObject interact = new InteractWithGameObject();
             interact.InteractingWithThisGameObject = rightClick.rightClickGameObject;
             interact.FireEvent();
         }
-        else
+        else if(rightClick.rightClickGameObject.tag != "Unit")
         {
+            Debug.Log("Clicked on Environment");
             movePoint = rightClick.mousePosition;
             stopDist = 1.1f;
+            stopAttacking = true;
+            StartCoroutine("IMove");// IMove(movePoint, stopDist));
+        }
+        else if(rightClick.rightClickGameObject.tag == "Unit")
+        {
+            Debug.Log("Clicked on Allied Unit");
+            Vector3 lookAtVec = new Vector3(rightClick.rightClickGameObject.transform.position.x, transform.position.y, rightClick.rightClickGameObject.transform.position.z);
+            transform.LookAt(lookAtVec);
+            movePoint = rightClick.rightClickGameObject.transform.position;
+            stopDist = 2.5f;
+            stopAttacking = true;
+            StartCoroutine("IMove");
         }
         agent.ResetPath();
         agent.SetDestination(movePoint);
+
     }
 
     private void OnLeftMouseSelected(LeftMouseSelectEvent objectSelected)
@@ -277,26 +356,35 @@ public class UnitController : MonoBehaviour
         }
     }
 
+    private void TakeDamage()
+    {
+        
+    }
+
     private void OnEnemyUnitAttack(EnemyAttackEvent unitAttack)
     {
-        int actualDamageTaken = unitAttack.UnitStats.Damage;
+        float actualDamageTaken = unitAttack.UnitStats.Damage;
         actualDamageTaken -= stats.Armor;
-        actualDamageTaken = Mathf.Clamp(actualDamageTaken, 0, int.MaxValue);
         stats.CurrentHealth -= actualDamageTaken;
 
         Debug.Log(unitAttack.UnitAttacked.name + " took " + actualDamageTaken + " damage from " + unitAttack.UnitAttacker.name);
+        Debug.Log(stats.CurrentHealth);
     }
 
     private void OnEnemyUnitDeath(UnitDeathEvent unitDeath)
     {
-        stats.CurrentExp += unitDeath.expDropped;
-        if(stats.CurrentExp >= stats.ExpToNextLevel)
+        if(unitDeath.UnitKiller == gameObject)
         {
-
-            LevelUp();
+            stats.CurrentExp += unitDeath.expDropped;
+            if (stats.CurrentExp >= stats.ExpToNextLevel)
+            {
+                LevelUp();
+            }
         }
+
         if (attackedObject == unitDeath.UnitDied)
         {
+            //Debug.Log("stopAttacking = true");
             stopAttacking = true;
         }
     }

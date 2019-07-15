@@ -145,7 +145,7 @@ public class EnemyController : MonoBehaviour
         {
             DoDamage(stats.Damage);
 
-            int damage = unitAttack.UnitStats.Damage;
+            float damage = unitAttack.UnitStats.Damage;
             damage -= stats.Armor;
             damage = Mathf.Clamp(damage, 0, int.MaxValue);
             stats.CurrentHealth -= damage;
@@ -159,7 +159,7 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    public void DoDamage(int damage)
+    public void DoDamage(float damage)
     {
         // TODO: Make this independent on Player attacking the object first.
         if (stats != null)

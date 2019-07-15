@@ -6,13 +6,14 @@ using UnityEngine;
 public class CameraController : MonoBehaviour
 {
     public Camera cam;
-    private RaycastHit rightMouseHit;
-    private RaycastHit leftMouseHit;
-    private Ray ray;
+    private GameObject currentSelectedObject;
 
     private int edgeSize = 10;
     private int speed = 10;
     private float moveCam = 1;
+
+    Ray ray;
+    RaycastHit leftMouseHit;
 
     void Start()
     {
@@ -22,7 +23,7 @@ public class CameraController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleMovement();
+       // HandleMovement();
         CameraOnScreenClick();
     }
 
@@ -52,29 +53,36 @@ public class CameraController : MonoBehaviour
 
     private void CameraOnScreenClick()
     {
+        
         if (Input.GetMouseButtonDown(0))
         {
+            currentSelectedObject = null;
             ray = cam.ScreenPointToRay(Input.mousePosition);
+            
 
             if (Physics.Raycast(ray, out leftMouseHit))
             {
-                GameObject gameObj = leftMouseHit.transform.gameObject;
+                //Debug.DrawRay(new Vector3(0, 1, 0), leftMouseHit.point, Color.red, duration: 10);
+                currentSelectedObject = leftMouseHit.transform.gameObject;
+                Debug.Log("Selected Object: " + leftMouseHit.transform.gameObject);
                 LeftMouseSelectEvent leftMouseSelect = new LeftMouseSelectEvent();
-                leftMouseSelect.selectedGameObject = gameObj;
+                leftMouseSelect.selectedGameObject = leftMouseHit.transform.gameObject;
                 leftMouseSelect.FireEvent();
             }
         }
 
         if (Input.GetMouseButtonDown(1))
         {
-            ray = cam.ScreenPointToRay(Input.mousePosition);
+            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
-            if (Physics.Raycast(ray, out rightMouseHit))
+            if (Physics.Raycast(ray, out RaycastHit rightMouseHit))
             {
                 RightMouseSelectEvent rightMouseClick = new RightMouseSelectEvent();
                 rightMouseClick.rightClickGameObject = rightMouseHit.transform.gameObject;
                 rightMouseClick.mousePosition = rightMouseHit.point;
+                rightMouseClick.clicker = currentSelectedObject;
                 rightMouseClick.FireEvent();
+                Debug.Log(rightMouseHit.transform.gameObject + " was right clicked");
             }
         }
     }

@@ -4,6 +4,23 @@ using UnityEngine;
 
 public class CharacterStats : MonoBehaviour
 {
+
+    PlayerManager playerManager;
+
+    private float damage;
+    private float currentExp;
+    private float currentLevel;
+    private float maxHealth;
+    private float currentHealth;
+    private float attackCooldown;
+    private float armor;
+    private float attackSpeed;
+    private float moveSpeed;
+    private float expToNextLevel;
+    private bool alreadyLoaded = false;
+
+
+
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
@@ -12,30 +29,39 @@ public class CharacterStats : MonoBehaviour
 
     void Start()
     {
-        CurrentExp = 0;
-        //Temporary way of assigning the Player 20 base dmg.
-        if (gameObject.GetComponent<UnitController>() != null)
+
+    }
+
+    void Update()
+    {
+        playerManager = transform.parent.GetComponent<PlayerManager>();
+        if (playerManager != null && !alreadyLoaded)
         {
-            Damage = 20;
-            Armor = 4;
-            MoveSpeed = 1.0f;
-            CurrentLevel = 1;
-        }
-        else
-        {
-            Damage = 7;
+            damage = 20 * playerManager.damageMultiplier;
+            currentExp = 0 * playerManager.currentExpMultiplier;
+            currentLevel = 1 * playerManager.currentLevelMultiplier;
+            maxHealth = 100 * playerManager.maxHealthMultiplier;
+            currentHealth = 100 * playerManager.currentHealthMultiplier;
+            attackCooldown = 1.0f * playerManager.attackCooldownMultiplier;
+            armor = 1 * playerManager.armorMultiplier;
+            attackSpeed = (1.333f / 1.0f) * (playerManager.attackSpeedMultiplier);
+            moveSpeed = 1.0f * playerManager.moveSpeedMultiplier;
+            expToNextLevel = 100 * playerManager.expToNextLevelMultiplier;
+
+            alreadyLoaded = true;
+            
         }
     }
 
-    public int Damage { get; set; }
-    public int CurrentExp { get; set; } = 0;
-    public int CurrentLevel { get; set; }
-    public int MaxHealth { get; set; } = 100;
-    public int CurrentHealth { get; set; } = 100;
-    public float AttackCooldown { get; set; } = 1.0f;
-    public int Armor { get; set; } = 0;
-    public float AttackSpeed { get; set; }
-    public float MoveSpeed { get; set; }
-    public int ExpToNextLevel { get; set; } = 100;
+    public float Damage { get { return damage; } set { damage = value; } }
+    public float CurrentExp { get { return currentExp; } set { currentExp = value; } }
+    public float CurrentLevel { get { return currentLevel; } set { currentLevel = value; } }
+    public float MaxHealth { get { return maxHealth; } set { maxHealth = value; } }
+    public float CurrentHealth { get { return currentHealth; } set { currentHealth = value; } }
+    public float AttackCooldown { get { return attackCooldown; } set { attackCooldown = value; } } 
+    public float Armor { get { return armor; } set { armor = value; } } 
+    public float AttackSpeed { get { return attackSpeed; } set { attackSpeed = value; } } 
+    public float MoveSpeed { get { return moveSpeed; } set { moveSpeed = value; } } 
+    public float ExpToNextLevel { get { return expToNextLevel; } set { expToNextLevel = value; } } 
 
 }

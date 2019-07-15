@@ -48,6 +48,7 @@ public class UnitDeathEvent : EventHandler<UnitDeathEvent>
 {
     public GameObject UnitDied;
     public int expDropped;
+    public GameObject UnitKiller;
 }
 
 public class PlayerAttackEvent : EventHandler<PlayerAttackEvent>
@@ -82,6 +83,7 @@ public class LeftMouseSelectEvent : EventHandler<LeftMouseSelectEvent>
 public class RightMouseSelectEvent : EventHandler<RightMouseSelectEvent>
 {
     public GameObject rightClickGameObject;
+    public GameObject clicker;
     public Vector3 mousePosition;
 }
 

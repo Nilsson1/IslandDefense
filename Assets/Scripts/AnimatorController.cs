@@ -25,7 +25,7 @@ public class AnimatorController
 
     public void Idle()
     {
-
+        anim.Play("Idle");
     }
 
     public void SetMoveSpeed(float moveSpeed)

@@ -5,104 +5,52 @@ using UnityEngine;
 public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager instance;
+    public PlayerType playerType;
+    private TypeStats stats;
 
-    private GameObject gameObjectSelected;
-    private bool objectToMove = false;
-    private Vector3 movePoint;
-    private float stopDist;
-
-    Material highlightMat;
-    Material originalMat;
+    public float damageMultiplier;
+    public float currentExpMultiplier;
+    public float currentLevelMultiplier;
+    public float maxHealthMultiplier;
+    public float currentHealthMultiplier;
+    public float attackCooldownMultiplier;
+    public float armorMultiplier;
+    public float attackSpeedMultiplier;
+    public float moveSpeedMultiplier;
+    public float expToNextLevelMultiplier;
 
     void Awake()
     {
         instance = this;
     }
-
-   /* void OnGUI()
+    
+    void Start()
     {
-        if (Event.current.Equals(Event.KeyboardEvent("D")) && gameObjectSelected)
-        {
-            print("D pressed!");
-            SpawnUnitEvent spawnUnit = new SpawnUnitEvent();
-            spawnUnit.parent = transform;
-            spawnUnit.tag = "AttackAble";
-            spawnUnit.position = new Vector3(6f, 1f, 6f);
-            spawnUnit.uNIT_TYPE = SpawnUnitEvent.UNIT_TYPE.YELLOW_UNIT;
-            Debug.Log(spawnUnit.uNIT_TYPE);
-            spawnUnit.FireEvent();
-        }
+        playerType = PlayerType.Titan;
+        stats = new TypeStats(playerType);
+        StartCoroutine("ILoadMultipliers");
     }
 
-    void OnEnable()
+    private IEnumerator ILoadMultipliers()
     {
-        LeftMouseSelectEvent.RegisterListener(OnLeftMouseSelected);
-        RightMouseSelectEvent.RegisterListener(OnRightClick);
-    }
-
-    private void OnRightClick(RightMouseSelectEvent rightClick)
-    {
-        if()
-
-        if (!rightClick.rightClickGameObject.transform.IsChildOf(transform.parent) && rightClick.rightClickGameObject.tag == "AttackAble")
+        while (true)
         {
-            attackedObject = rightClick.rightClickGameObject;
-
-            attack = true;
-            movePoint = rightClick.rightClickGameObject.transform.position;
-            stopDist = 2.5f;
-
-            InteractWithGameObject interact = new InteractWithGameObject();
-            interact.InteractingWithThisGameObject = rightClick.rightClickGameObject;
-            interact.FireEvent();
-        }
-        else
-        {
-            movePoint = rightClick.mousePosition;
-            stopDist = 1.1f;
-        }
-        agent.ResetPath();
-        agent.SetDestination(movePoint);
-    }
-
-    private void OnLeftMouseSelected(LeftMouseSelectEvent objectSelected)
-    {
-        gameObjectSelected = null;
-        foreach (Transform enemy in transform)
-        {
-            if (objectSelected.selectedGameObject == enemy.gameObject)
+            if (TypeStats.rdyToLoad)
             {
-                gameObjectSelected = enemy.gameObject;
-            }
-            else if (enemy.gameObject.GetComponent<MeshFilter>() != null)
-            {
-                originalMat = Resources.Load("Mat/AttackAble", typeof(Material)) as Material;
-                Debug.Log("new Mat: " + originalMat.name);
-                MeshRenderer meshRenderer = enemy.GetComponent<MeshRenderer>();
-                // Get the current material applied on the GameObject
-                Material oldMaterial = meshRenderer.material;
-                Debug.Log("Applied Material: " + oldMaterial.name);
-                // Set the new material on the GameObject
-                meshRenderer.material = originalMat;
+                damageMultiplier = stats.damageMultiplier;
+                currentExpMultiplier = stats.currentExpMultiplier;
+                currentLevelMultiplier = stats.currentLevelMultiplier;
+                maxHealthMultiplier = stats.maxHealthMultiplier;
+                currentHealthMultiplier = stats.currentHealthMultiplier;
+                attackCooldownMultiplier = stats.attackCooldownMultiplier;
+                armorMultiplier = stats.armorMultiplier;
+                attackSpeedMultiplier = stats.attackSpeedMultiplier;
+                moveSpeedMultiplier = stats.moveSpeedMultiplier;
+                expToNextLevelMultiplier = stats.expToNextLevelMultiplier;
+                
+
+                yield return null;
             }
         }
-        if (gameObjectSelected != null)
-        {
-
-            highlightMat = Resources.Load("Mat/HighlightMat", typeof(Material)) as Material;
-            Debug.Log("new Mat: " + highlightMat.name);
-            MeshRenderer meshRenderer = gameObjectSelected.GetComponent<MeshRenderer>();
-            // Get the current material applied on the GameObject
-            Material oldMaterial = meshRenderer.material;
-            Debug.Log("Applied Material: " + oldMaterial.name);
-            // Set the new material on the GameObject
-            meshRenderer.material = highlightMat;
-
-            objectToMove = true;
-        }
-        else
-        {
-            objectToMove = false;
-        }
-    }*/
+    }
 }

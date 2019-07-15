@@ -25,10 +25,7 @@ public class UnitCreater : MonoBehaviour
     {
         Debug.Log("Prefabs/" + spawnUnit.uNIT_TYPE);
         GameObject myPrefab = (GameObject)Resources.Load("Prefabs/" + spawnUnit.uNIT_TYPE, typeof(GameObject));
-
         GameObject newUnit = Instantiate(myPrefab, spawnUnit.position, Quaternion.identity);
         newUnit.transform.SetParent(spawnUnit.parent);
-        newUnit.tag = spawnUnit.tag;
-
     }
 }
