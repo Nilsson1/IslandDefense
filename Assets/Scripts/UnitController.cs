@@ -36,7 +36,7 @@ public class UnitController : MonoBehaviour
 
     void Awake()
     {
-        instance = this;
+        instance = this; 
     }
 
     void Start()
