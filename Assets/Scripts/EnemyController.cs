@@ -63,6 +63,14 @@ public class EnemyController : MonoBehaviour
         RightMouseSelectEvent.RegisterListener(OnRightClick);
     }
 
+    void OnDisable()
+    {
+        InteractWithGameObject.UnregisterListener(OnInteracting);
+        PlayerAttackEvent.UnregisterListener(OnUnitAttacked);
+        LeftMouseSelectEvent.UnregisterListener(OnLeftMouseSelected);
+        RightMouseSelectEvent.UnregisterListener(OnRightClick);
+    }
+
     private void OnRightClick(RightMouseSelectEvent rightClick)
     {
         movePoint = Vector3.zero;
@@ -86,6 +94,7 @@ public class EnemyController : MonoBehaviour
 
     private void OnLeftMouseSelected(LeftMouseSelectEvent objectSelected)
     {
+        if (transform.childCount == 0) { return; }
         gameObjectSelected = null;
         foreach (Transform enemy in transform)
         {

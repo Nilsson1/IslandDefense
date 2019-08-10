@@ -67,6 +67,7 @@ public class CameraController : MonoBehaviour
                 Debug.Log("Selected Object: " + leftMouseHit.transform.gameObject);
                 LeftMouseSelectEvent leftMouseSelect = new LeftMouseSelectEvent();
                 leftMouseSelect.selectedGameObject = leftMouseHit.transform.gameObject;
+                Debug.Log("Cam left click: " + leftMouseSelect.selectedGameObject);
                 leftMouseSelect.FireEvent();
             }
         }
