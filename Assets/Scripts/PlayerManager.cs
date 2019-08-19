@@ -1,12 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
+using Photon.Realtime;
 
 public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager instance;
     public PlayerType playerType;
     private TypeStats stats;
+    public Player player;
 
     public float damageMultiplier;
     public float currentExpMultiplier;

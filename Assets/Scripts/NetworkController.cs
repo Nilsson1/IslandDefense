@@ -14,4 +14,6 @@ public class NetworkController : MonoBehaviourPunCallbacks
     {
         Debug.Log("Connected to " + PhotonNetwork.CloudRegion + " server!");
     }
+
+
 }

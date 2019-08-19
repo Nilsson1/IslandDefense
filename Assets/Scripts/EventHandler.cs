@@ -94,11 +94,13 @@ public class SpawnUnitEvent : EventHandler<SpawnUnitEvent>
     
     public enum UNIT_TYPE
     {
-        BLUE_UNIT, OTHER_UNIT, PlayerOtherUnit, YELLOW_UNIT
+        BLUE_UNIT, OTHER_UNIT, PlayerOtherUnit, YELLOW_UNIT, WALL
     }
 
     public UNIT_TYPE uNIT_TYPE;
     public Vector3 position;
     public Transform parent;
     public string tag;
+    public Transform spawner;
+    public int viewID;
 }

@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
+using Photon.Pun;
 
 
-public class UnitController : MonoBehaviour
+public class UnitController : MonoBehaviourPunCallbacks
 {
     public NavMeshAgent agent;
     public Animator anim;
@@ -34,13 +35,20 @@ public class UnitController : MonoBehaviour
 
     public static UnitController instance = null;
 
+    private PhotonView PV;
+    private CharacterController CC;
+
     void Awake()
     {
-        instance = this; 
+        instance = this;
     }
 
     void Start()
     {
+
+        PV = GetComponent<PhotonView>();
+        CC = GetComponent<CharacterController>();
+
         if (!(anim = this.GetComponent<Animator>()))
         {
             objectHasAnimation = false;
@@ -75,10 +83,15 @@ public class UnitController : MonoBehaviour
             print("S pressed!");
             SpawnUnitEvent spawnUnit = new SpawnUnitEvent();
             spawnUnit.parent = transform.parent;
+            spawnUnit.spawner = transform;
+
+            Transform parent = gameObject.transform.parent;
+            spawnUnit.viewID = parent.GetComponent<PhotonView>().ViewID;
+            spawnUnit.uNIT_TYPE = SpawnUnitEvent.UNIT_TYPE.WALL;
             spawnUnit.position = new Vector3(3f, 1f, 3f);
-            spawnUnit.uNIT_TYPE = SpawnUnitEvent.UNIT_TYPE.PlayerOtherUnit;
             Debug.Log(spawnUnit.uNIT_TYPE);
             spawnUnit.FireEvent();
+            
         }
 
         if (Event.current.Equals(Event.KeyboardEvent("D")) && gameObjectSelected)
@@ -285,6 +298,13 @@ public class UnitController : MonoBehaviour
         {
             return;
         }
+
+        if (!PV.IsMine)
+        {
+            Debug.Log("Not the owner");
+            return;
+        }
+        /*
         //Debug.Log(rightClick.clicker.name);
         if(rightClick.clicker.transform.parent == null)
         {
@@ -297,7 +317,7 @@ public class UnitController : MonoBehaviour
         if("Player1GameObject" != rightClick.clicker.transform.parent.name)
         {
             return;
-        }
+        }*/
 
         attack = false;
         rdyToAttack = false;
@@ -305,8 +325,46 @@ public class UnitController : MonoBehaviour
         rayMove = true;
 
 
-        //Debug.Log(rightClick.rightClickGameObject.name);
+        Debug.Log(rightClick.rightClickGameObject.name);
 
+
+        if (rightClick.rightClickGameObject.GetPhotonView().IsMine && !rightClick.rightClickGameObject.GetPhotonView().IsSceneView)
+        {
+            Debug.Log("Clicked on Allied Unit");
+            Vector3 lookAtVec = new Vector3(rightClick.rightClickGameObject.transform.position.x, transform.position.y, rightClick.rightClickGameObject.transform.position.z);
+            transform.LookAt(lookAtVec);
+            movePoint = rightClick.rightClickGameObject.transform.position;
+            stopDist = 2.5f;
+            stopAttacking = true;
+            StartCoroutine("IMove");
+        }
+        else if (rightClick.rightClickGameObject.GetPhotonView().IsSceneView)
+        {
+            Debug.Log("Clicked on Environment");
+            movePoint = rightClick.mousePosition;
+            stopDist = 1.1f;
+            stopAttacking = true;
+            StartCoroutine("IMove");
+        }
+        else if (!rightClick.rightClickGameObject.GetPhotonView().IsMine && !rightClick.rightClickGameObject.GetPhotonView().IsSceneView)
+        {
+            attackedObject = rightClick.rightClickGameObject;
+
+            attack = true;
+            movePoint = rightClick.rightClickGameObject.transform.position;
+            stopDist = 2.5f;
+            StartCoroutine("IMove");
+            StartCoroutine("IHandleAttack");
+
+            InteractWithGameObject interact = new InteractWithGameObject();
+            interact.InteractingWithThisGameObject = rightClick.rightClickGameObject;
+            interact.FireEvent();
+        }
+
+        agent.ResetPath();
+        agent.SetDestination(movePoint);
+
+        /*
         if (rightClick.rightClickGameObject.transform.parent != transform.parent && rightClick.rightClickGameObject.tag != "Environment")
         {
             attackedObject = rightClick.rightClickGameObject;
@@ -340,7 +398,7 @@ public class UnitController : MonoBehaviour
             StartCoroutine("IMove");
         }
         agent.ResetPath();
-        agent.SetDestination(movePoint);
+        agent.SetDestination(movePoint);*/
 
     }
 

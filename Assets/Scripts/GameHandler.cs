@@ -18,4 +18,5 @@ public class GameHandler : MonoBehaviour
     {
         surface.BuildNavMesh();
     }
+
 }
