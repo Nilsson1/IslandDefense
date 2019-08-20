@@ -80,11 +80,11 @@ public class TypeStats
 
     private void LoadMurlocMultipliers()
     {
-        damageMultiplier = 1.0f;
+        damageMultiplier = 0.5f;
         currentExpMultiplier = 1.0f;
         currentLevelMultiplier = 1.0f;
-        maxHealthMultiplier = 1.0f;
-        currentHealthMultiplier = 1.0f;
+        maxHealthMultiplier = 0.5f;
+        currentHealthMultiplier = 0.5f;
         attackCooldownMultiplier = 1.0f;
         armorMultiplier = 1.0f;
         attackSpeedMultiplier = 1.0f;

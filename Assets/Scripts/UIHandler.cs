@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 
 public class UIHandler : MonoBehaviour
 {
     UnitController player;
-    EnemyController enemy;
+    CharacterStats stats;
 
     private Text levelUI;
     private Text damageUI;
@@ -18,7 +19,6 @@ public class UIHandler : MonoBehaviour
     void Start()
     {
         player = UnitController.instance;
-        enemy = EnemyController.instance;
 
         levelUI = GameObject.Find("Level").GetComponent<Text>();
         damageUI = GameObject.Find("Damage").GetComponent<Text>();
@@ -37,20 +37,37 @@ public class UIHandler : MonoBehaviour
     void OnEnable()
     {
         UnitDeathEvent.RegisterListener(OnUnitDeath);
+        LeftMouseSelectEvent.RegisterListener(OnLeftMouseSelect);
     }
 
     // Update is called once per frame
     void Update()
     {
         //TODO: Instead of doing this each frame (Update), listen to an UpdateUI event that fires when something changes.
-        levelUI.text = "Level " + player.stats.CurrentLevel.ToString() + " (" + player.stats.CurrentExp.ToString() + "/" + player.stats.ExpToNextLevel.ToString() + ")";
+        /*levelUI.text = "Level " + player.stats.CurrentLevel.ToString() + " (" + player.stats.CurrentExp.ToString() + "/" + player.stats.ExpToNextLevel.ToString() + ")";
         healthUI.text = "Health " + player.stats.CurrentHealth.ToString() + "/" + player.stats.MaxHealth.ToString();
         damageUI.text = "Damage " + player.stats.Damage.ToString();
-        armorUI.text = "Armor " + player.stats.Armor.ToString();
+        armorUI.text = "Armor " + player.stats.Armor.ToString();*/
 
-        if(enemy.stats != null)
+        /*levelUI.text = "Level " + stats.CurrentLevel.ToString() + " (" + stats.CurrentExp.ToString() + "/" + stats.ExpToNextLevel.ToString() + ")";
+        healthUI.text = "Health " + stats.CurrentHealth.ToString() + "/" + stats.MaxHealth.ToString();
+        damageUI.text = "Damage " + stats.Damage.ToString();
+        armorUI.text = "Armor " + stats.Armor.ToString();*/
+        //enemyInfoUI.text = "PlayerType " + leftMouseSelectEvent.selectedGameObject.GetComponentInParent<PlayerManager>().playerType.ToString();
+    }
+
+    void OnLeftMouseSelect(LeftMouseSelectEvent leftMouseSelectEvent)
+    {
+        if (leftMouseSelectEvent.selectedGameObject.GetComponent<CharacterStats>())
         {
-            enemyInfoUI.text = "Enemy Health: " + enemy.stats.CurrentHealth.ToString();
+            Debug.Log("Updating UI stats!");
+            stats = leftMouseSelectEvent.selectedGameObject.GetComponent<CharacterStats>();
+
+            levelUI.text = "Level " + stats.CurrentLevel.ToString() + " (" + stats.CurrentExp.ToString() + "/" + stats.ExpToNextLevel.ToString() + ")";
+            healthUI.text = "Health " + stats.CurrentHealth.ToString() + "/" + stats.MaxHealth.ToString();
+            damageUI.text = "Damage " + stats.Damage.ToString();
+            armorUI.text = "Armor " + stats.Armor.ToString();
+            enemyInfoUI.text = "PlayerType " + leftMouseSelectEvent.selectedGameObject.GetComponentInParent<PlayerManager>().playerType.ToString();
         }
     }
 
@@ -64,5 +81,14 @@ public class UIHandler : MonoBehaviour
     {
         yield return new WaitForSeconds(2);
         enemyInfoUI.text = "";
+    }
+
+    //Inventory buttons
+
+    public void UIBuildOnClick()
+    {
+        BuilderEvent build = new BuilderEvent();
+        build.buildMode = true;
+        build.FireEvent();
     }
 }

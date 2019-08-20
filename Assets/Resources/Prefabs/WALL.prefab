@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2478585296091906419}
   - component: {fileID: 768124603017178065}
   - component: {fileID: 6436704605851049310}
-  - component: {fileID: 5366951897591744345}
+  - component: {fileID: 5050907174218351259}
   m_Layer: 0
   m_Name: WALL
   m_TagString: Untagged
@@ -128,8 +128,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4aa30c43d8cc1b545ab38ca523c591ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stats: {fileID: 0}
---- !u!114 &5366951897591744345
+  stats: {fileID: 5050907174218351259}
+  health: 0
+--- !u!114 &5050907174218351259
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -141,3 +142,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 223c14bc351df6644819aec308a59dcf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playManagerIsNull: 0

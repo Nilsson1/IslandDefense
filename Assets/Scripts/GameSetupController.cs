@@ -8,6 +8,7 @@ public class GameSetupController : MonoBehaviour
     // This script will be added to any multiplayer scene
     System.Random random;
     GameObject parentObject;
+    Material mat;
 
     void Start()
     {
@@ -19,6 +20,7 @@ public class GameSetupController : MonoBehaviour
     {
         Debug.Log("Creating Player");
         parentObject = (GameObject)PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "PhotonPlayer"), RandomPosition(), Quaternion.identity);
+
 
 
     }

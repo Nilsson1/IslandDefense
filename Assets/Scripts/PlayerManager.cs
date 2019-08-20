@@ -9,7 +9,11 @@ public class PlayerManager : MonoBehaviour
     public static PlayerManager instance;
     public PlayerType playerType;
     private TypeStats stats;
-    public Player player;
+    private bool buildMode = false;
+    Player[] playerList;
+    PhotonView PV;
+
+    public bool coroutineStarted = false;
 
     public float damageMultiplier;
     public float currentExpMultiplier;
@@ -22,6 +26,9 @@ public class PlayerManager : MonoBehaviour
     public float moveSpeedMultiplier;
     public float expToNextLevelMultiplier;
 
+    public bool rdyToLoad;
+    public bool loadedStats = false;
+
     void Awake()
     {
         instance = this;
@@ -29,17 +36,31 @@ public class PlayerManager : MonoBehaviour
     
     void Start()
     {
-        playerType = PlayerType.Titan;
+        playerList = PhotonNetwork.PlayerList;
+        PV = GetComponent<PhotonView>();
+
+        if (PV.Owner.Equals(playerList[0]))
+        {
+            playerType = PlayerType.Titan;
+        }
+        else
+        {
+            playerType = PlayerType.Murloc;
+        }
+
         stats = new TypeStats(playerType);
         StartCoroutine("ILoadMultipliers");
     }
 
     private IEnumerator ILoadMultipliers()
     {
+        coroutineStarted = true;
         while (true)
         {
-            if (TypeStats.rdyToLoad)
+            rdyToLoad = TypeStats.rdyToLoad;
+            if (rdyToLoad)
             {
+
                 damageMultiplier = stats.damageMultiplier;
                 currentExpMultiplier = stats.currentExpMultiplier;
                 currentLevelMultiplier = stats.currentLevelMultiplier;
@@ -50,10 +71,12 @@ public class PlayerManager : MonoBehaviour
                 attackSpeedMultiplier = stats.attackSpeedMultiplier;
                 moveSpeedMultiplier = stats.moveSpeedMultiplier;
                 expToNextLevelMultiplier = stats.expToNextLevelMultiplier;
-                
 
+                loadedStats = true;
                 yield return null;
             }
         }
     }
+
+    public bool BuildMode { get { return buildMode; } set { buildMode = value; } }
 }

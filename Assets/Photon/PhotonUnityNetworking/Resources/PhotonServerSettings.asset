@@ -32,5 +32,9 @@ MonoBehaviour:
   - RPCSetParent
   - DestroyGO
   - RPCDestroyGO
+  - SpawnUnit
+  - RPCAttack
+  - RPCDropExp
+  - RPCUpdateMaterial
   DisableAutoOpenWizard: 1
   ShowSettings: 0

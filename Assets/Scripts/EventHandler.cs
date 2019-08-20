@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using Photon.Pun;
 
 public abstract class EventHandler<T> where T : EventHandler<T>
 {
@@ -49,6 +50,10 @@ public class UnitDeathEvent : EventHandler<UnitDeathEvent>
     public GameObject UnitDied;
     public int expDropped;
     public GameObject UnitKiller;
+
+    public int diedPhotonViewID;
+    public Vector3 diedPosition;
+    public int killerPhotonViewID;
 }
 
 public class PlayerAttackEvent : EventHandler<PlayerAttackEvent>
@@ -56,6 +61,10 @@ public class PlayerAttackEvent : EventHandler<PlayerAttackEvent>
     public GameObject UnitAttacked;
     public GameObject UnitAttacker;
     public CharacterStats UnitStats;
+
+    public int attackedViewID;
+    public int attackerViewID;
+    public float[] UnitStatsArray;
 }
 
 public class EnemyAttackEvent : EventHandler<EnemyAttackEvent>
@@ -87,6 +96,11 @@ public class RightMouseSelectEvent : EventHandler<RightMouseSelectEvent>
     public Vector3 mousePosition;
 }
 
+public class BuilderEvent : EventHandler<BuilderEvent>
+{
+    public GameObject builder;
+    public bool buildMode;
+}
 
 
 public class SpawnUnitEvent : EventHandler<SpawnUnitEvent>
@@ -96,6 +110,8 @@ public class SpawnUnitEvent : EventHandler<SpawnUnitEvent>
     {
         BLUE_UNIT, OTHER_UNIT, PlayerOtherUnit, YELLOW_UNIT, WALL
     }
+
+    public ObjectType objectType;
 
     public UNIT_TYPE uNIT_TYPE;
     public Vector3 position;

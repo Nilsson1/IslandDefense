@@ -5,7 +5,10 @@ using UnityEngine;
 
 public class WallController : MonoBehaviour
 {
+    RPC rpc;
+
     public CharacterStats stats;
+    public float health;
     private PhotonView PV;
 
     private float timeSinceAttack = 0.0f;
@@ -14,15 +17,15 @@ public class WallController : MonoBehaviour
     private bool objectToMove = false;
     private Vector3 movePoint;
     private float stopDist;
+    private bool loadedMat = false;
 
     Material highlightMat;
     Material originalMat;
 
-    public static WallController instance = null;
 
     void Awake()
     {
-        instance = this;
+        rpc = RPC.instance;
     }
 
     void Start()
@@ -30,14 +33,13 @@ public class WallController : MonoBehaviour
         PV = GetComponent<PhotonView>();
     }
 
-    void Update()
+    private void Update()
     {
-
-    }
-
-    void OnGUI()
-    {
-
+        if (gameObject.GetComponentInParent<PlayerManager>().loadedStats && !loadedMat)
+        {
+            UpdateMaterial();
+            loadedMat = true;
+        }
     }
 
     void OnEnable()
@@ -45,7 +47,6 @@ public class WallController : MonoBehaviour
         InteractWithGameObject.RegisterListener(OnInteracting);
         PlayerAttackEvent.RegisterListener(OnUnitAttacked);
         //LeftMouseSelectEvent.RegisterListener(OnLeftMouseSelected);
-        RightMouseSelectEvent.RegisterListener(OnRightClick);
     }
 
     void OnDisable()
@@ -53,29 +54,13 @@ public class WallController : MonoBehaviour
         InteractWithGameObject.UnregisterListener(OnInteracting);
         PlayerAttackEvent.UnregisterListener(OnUnitAttacked);
         //LeftMouseSelectEvent.UnregisterListener(OnLeftMouseSelected);
-        RightMouseSelectEvent.UnregisterListener(OnRightClick);
     }
 
-    private void OnRightClick(RightMouseSelectEvent rightClick)
+    private void UpdateMaterial()
     {
-        movePoint = Vector3.zero;
-        if (objectToMove && gameObjectSelected != null)
-        {
-            //attack = false;
-            //rdyToAttack = false;
-            movePoint = Vector3.zero;
-            //rayMove = true;
-
-            // attack = true;
-            movePoint = rightClick.rightClickGameObject.transform.position;
-            stopDist = 2.5f;
-
-            Debug.Log(gameObjectSelected.name + " hit: " + rightClick.rightClickGameObject.name);
-
-            //agent.ResetPath();
-            //agent.SetDestination(movePoint);
-        }
+        //rpc.UpdateMaterial(PV.ViewID, gameObject.GetComponentInParent<PlayerManager>().playerType.ToString());
     }
+
     /* OnLeftMouseSelected
     private void OnLeftMouseSelected(LeftMouseSelectEvent objectSelected)
     {
@@ -120,71 +105,33 @@ public class WallController : MonoBehaviour
         if (gameObject == interact.InteractingWithThisGameObject)
         {
             //TODO: Fix:This overwrites the stats, so if 2 players attack different objects the last attacked object takes damage from both.
-            stats = GetComponent<CharacterStats>();
-
+            //stats = GetComponent<CharacterStats>();
         }
     }
     
-    private void OnUnitAttacked(PlayerAttackEvent unitAttack)
+    private void OnUnitAttacked(PlayerAttackEvent attackedEvent)
     {
-        if (stats != null)
+
+        if (stats != null && attackedEvent.attackedViewID == gameObject.GetPhotonView().ViewID)
         {
-            //DoDamage(stats.Damage);
-
-            float damage = unitAttack.UnitStats.Damage;
-            damage -= stats.Armor;
-            damage = Mathf.Clamp(damage, 0, int.MaxValue);
-            stats.CurrentHealth -= damage;
-            Debug.Log(unitAttack.UnitAttacked.name + " took " + damage + " damage from " + unitAttack.UnitAttacker.name);
-
-            if (stats.CurrentHealth <= 0)
+            if (gameObject.GetPhotonView().ViewID == attackedEvent.attackedViewID)
             {
-                stats.CurrentHealth = 0;
-                Die(unitAttack.UnitAttacked);
+                float actualDamageTaken = attackedEvent.UnitStatsArray[0] - stats.Armor;
+                stats.CurrentHealth -= Mathf.Clamp(actualDamageTaken, 0, float.MaxValue);
+                if (stats.CurrentHealth <= 0)
+                {
+                    Die(gameObject, attackedEvent.attackerViewID);
+                }
             }
         }
     }
 
-    public void DoDamage(float damage)
-    {
-        // TODO: Make this independent on Player attacking the object first.
-        if (stats != null)
-        {
-            if (Time.time - timeSinceAttack > 1.5)
-            {
-                EnemyAttackEvent enemyAttack = new EnemyAttackEvent();
-                enemyAttack.UnitAttacker = stats.gameObject;
-                //enemyAttack.UnitAttacked = player.gameObject;
-                enemyAttack.UnitStats = stats;
-                enemyAttack.FireEvent();
-
-                timeSinceAttack = Time.time;
-            }
-        }
-    }
-
-    public void Die(GameObject gameObj)
+    public void Die(GameObject gameObj, int viewIDKiller)
     {
         //Die
         if (gameObject != null)
         {
-            UnitDeathEvent unitDeathEvent = new UnitDeathEvent();
-            unitDeathEvent.UnitDied = gameObj;
-            unitDeathEvent.expDropped = 50;
-            unitDeathEvent.FireEvent();
-
-
-            PV.RPC("RPCDestroyGO", RpcTarget.All);
-            Debug.Log(gameObj.name + " died");
-        }
-    }
-
-    [PunRPC]
-    private void RPCDestroyGO(PhotonMessageInfo info)
-    {
-        if (info.photonView.IsMine)
-        {
-            PhotonNetwork.Destroy(info.photonView);
+            rpc.RPCDestroyGO(gameObj.GetPhotonView().ViewID, viewIDKiller);
         }
     }
 }

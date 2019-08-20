@@ -13,6 +13,8 @@ public class UnitController : MonoBehaviourPunCallbacks
     public Rigidbody rb;
     public CharacterStats stats;
 
+    private RPC rpc;
+
     AnimatorController animatorController;
 
     private GameObject attackedObject;
@@ -32,6 +34,7 @@ public class UnitController : MonoBehaviourPunCallbacks
     private bool objectHasRigidBody = true;
     private bool objectHasAgent = true;
     private bool stopAttacking = false;
+    private bool loadedMat = false;
 
     public static UnitController instance = null;
 
@@ -41,6 +44,7 @@ public class UnitController : MonoBehaviourPunCallbacks
     void Awake()
     {
         instance = this;
+        rpc = RPC.instance;
     }
 
     void Start()
@@ -62,6 +66,8 @@ public class UnitController : MonoBehaviourPunCallbacks
         stats.CurrentHealth = stats.MaxHealth;
         Debug.Log(stats.CurrentHealth);
         StartCoroutine("HealOverTime");
+
+
     }
 
     // Update is called once per frame
@@ -74,6 +80,11 @@ public class UnitController : MonoBehaviourPunCallbacks
         }
         //if(gameObjectSelected)
 
+        if (gameObject.GetComponentInParent<PlayerManager>().loadedStats && !loadedMat)
+        {
+            UpdateMaterial();
+            loadedMat = true;
+        }
     }
 
     void OnGUI()
@@ -106,6 +117,24 @@ public class UnitController : MonoBehaviourPunCallbacks
             spawnUnit.FireEvent();
         }
 
+        if (Event.current.Equals(Event.KeyboardEvent("B")) && gameObjectSelected)
+        {
+            print("B pressed!");
+            BuilderEvent builder = new BuilderEvent();
+            builder.builder = gameObject;
+            builder.buildMode = true;
+            builder.FireEvent();
+        }
+
+        if (Event.current.Equals(Event.KeyboardEvent("V")) && gameObjectSelected)
+        {
+            print("V pressed!");
+            BuilderEvent builder = new BuilderEvent();
+            builder.builder = gameObject;
+            builder.buildMode = false;
+            builder.FireEvent();
+        }
+
     }
 
     void FixedUpdate()
@@ -118,6 +147,11 @@ public class UnitController : MonoBehaviourPunCallbacks
     {
         animatorController.SetMoveSpeed(stats.MoveSpeed);
         animatorController.SetAttackSpeed(stats.AttackSpeed);
+    }
+
+    private void UpdateMaterial()
+    {
+        rpc.UpdateMaterial(PV.ViewID, gameObject.GetComponentInParent<PlayerManager>().playerType.ToString());
     }
 
     private IEnumerator HealOverTime()
@@ -193,12 +227,19 @@ public class UnitController : MonoBehaviourPunCallbacks
                 if (animatorController != null)
                     animatorController.Attack();
 
+                /*
                 PlayerAttackEvent unitAttackEvent = new PlayerAttackEvent();
                 unitAttackEvent.Description = "Unit " + gameObject.name + " has attacked.";
                 unitAttackEvent.UnitAttacked = attackedObject;
                 unitAttackEvent.UnitAttacker = gameObject;
                 unitAttackEvent.UnitStats = stats;
-                unitAttackEvent.FireEvent();
+                unitAttackEvent.FireEvent();*/
+
+                Debug.Log("Attack: " + PV.ViewID + " " + attackedObject.GetPhotonView().ViewID);
+
+                rpc.Attack(PV.ViewID, attackedObject.GetPhotonView().ViewID, stats.CharcterStatsToArray());
+
+                Debug.Log("AttackAfter: " + attackedObject + " " + attack + " " + rdyToAttack);
 
                 yield return new WaitForSeconds(stats.AttackCooldown);
             }
@@ -264,7 +305,7 @@ public class UnitController : MonoBehaviourPunCallbacks
 
     private void OnAttacked(PlayerAttackEvent attackedEvent)
     {
-        if(attackedEvent.UnitAttacked == gameObject)
+        /*if(attackedEvent.UnitAttacked == gameObject)
         {
             //Take damage.
             float actualDamageTaken = attackedEvent.UnitStats.Damage;
@@ -278,18 +319,30 @@ public class UnitController : MonoBehaviourPunCallbacks
             {
                 Die(gameObject, attackedEvent.UnitAttacker);
             }
+        }*/
+
+        Debug.Log("Took damage! " + attackedEvent.attackedViewID + " " + gameObject.GetPhotonView().ViewID);
+
+        if(gameObject.GetPhotonView().ViewID == attackedEvent.attackedViewID)
+        {
+            float actualDamageTaken = attackedEvent.UnitStatsArray[0] - stats.Armor;
+            stats.CurrentHealth -= Mathf.Clamp(actualDamageTaken, 0, float.MaxValue);
+            if(stats.CurrentHealth <= 0)
+            {
+                Die(gameObject, attackedEvent.attackerViewID);
+            }
         }
     }
 
-    private void Die(GameObject gameObj, GameObject killer)
+    private void Die(GameObject gameObj, int killerViewID)
     {
-        UnitDeathEvent unitDeath = new UnitDeathEvent();
+        /*UnitDeathEvent unitDeath = new UnitDeathEvent();
         unitDeath.expDropped = 50;
         unitDeath.UnitDied = gameObj;
         unitDeath.UnitKiller = killer;
-        unitDeath.FireEvent();
-        
-        Destroy(gameObj);
+        unitDeath.FireEvent();*/
+
+        rpc.RPCDestroyGO(gameObj.GetPhotonView().ViewID, killerViewID);
     }
 
     private void OnRightMouseClick(RightMouseSelectEvent rightClick)
@@ -333,7 +386,8 @@ public class UnitController : MonoBehaviourPunCallbacks
             Debug.Log("Clicked on Allied Unit");
             Vector3 lookAtVec = new Vector3(rightClick.rightClickGameObject.transform.position.x, transform.position.y, rightClick.rightClickGameObject.transform.position.z);
             transform.LookAt(lookAtVec);
-            movePoint = rightClick.rightClickGameObject.transform.position;
+            movePoint = rightClick.mousePosition;
+            //movePoint = rightClick.rightClickGameObject.transform.position;
             stopDist = 2.5f;
             stopAttacking = true;
             StartCoroutine("IMove");
@@ -351,7 +405,8 @@ public class UnitController : MonoBehaviourPunCallbacks
             attackedObject = rightClick.rightClickGameObject;
 
             attack = true;
-            movePoint = rightClick.rightClickGameObject.transform.position;
+            movePoint = rightClick.mousePosition;
+            //movePoint = rightClick.rightClickGameObject.transform.position;
             stopDist = 2.5f;
             StartCoroutine("IMove");
             StartCoroutine("IHandleAttack");
@@ -431,7 +486,26 @@ public class UnitController : MonoBehaviourPunCallbacks
 
     private void OnEnemyUnitDeath(UnitDeathEvent unitDeath)
     {
-        if(unitDeath.UnitKiller == gameObject)
+        if(unitDeath.diedPhotonViewID == gameObject.GetPhotonView().ViewID)
+        {
+            return;
+        }
+
+        if(Vector3.Distance(gameObject.transform.position, unitDeath.diedPosition) < 10f)
+        {
+            stats.CurrentExp += unitDeath.expDropped;
+            if (stats.CurrentExp >= stats.ExpToNextLevel)
+            {
+                LevelUp();
+            }
+        }
+
+        if (attackedObject == null)
+        {
+            stopAttacking = true;
+        }
+        
+        /*if(unitDeath.UnitKiller == gameObject)
         {
             stats.CurrentExp += unitDeath.expDropped;
             if (stats.CurrentExp >= stats.ExpToNextLevel)
@@ -444,7 +518,7 @@ public class UnitController : MonoBehaviourPunCallbacks
         {
             //Debug.Log("stopAttacking = true");
             stopAttacking = true;
-        }
+        }*/
     }
 
     private void LevelUp()
