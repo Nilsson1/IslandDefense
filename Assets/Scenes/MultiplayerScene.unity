@@ -1281,6 +1281,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13659b0f790150a409bc28db12eb394b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  canvas: {fileID: 1141002463}
 --- !u!114 &1141002465
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1571,6 +1572,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13659b0f790150a409bc28db12eb394b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  canvas: {fileID: 0}
 --- !u!1 &1560076688
 GameObject:
   m_ObjectHideFlags: 0
@@ -2167,6 +2169,21 @@ PrefabInstance:
       propertyPath: m_Pivot.y
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 2481206205874348923, guid: 8ff3c8e2f912d874885d79b3d40f4c13,
+        type: 3}
+      propertyPath: m_Text
+      value: Build
+      objectReference: {fileID: 0}
+    - target: {fileID: 2481206205874348923, guid: 8ff3c8e2f912d874885d79b3d40f4c13,
+        type: 3}
+      propertyPath: m_FontData.m_FontSize
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 2481206205874348923, guid: 8ff3c8e2f912d874885d79b3d40f4c13,
+        type: 3}
+      propertyPath: m_FontData.m_MinSize
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2481206206001894024, guid: 8ff3c8e2f912d874885d79b3d40f4c13,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
@@ -2196,21 +2213,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
-      objectReference: {fileID: 0}
-    - target: {fileID: 2481206205874348923, guid: 8ff3c8e2f912d874885d79b3d40f4c13,
-        type: 3}
-      propertyPath: m_Text
-      value: Build
-      objectReference: {fileID: 0}
-    - target: {fileID: 2481206205874348923, guid: 8ff3c8e2f912d874885d79b3d40f4c13,
-        type: 3}
-      propertyPath: m_FontData.m_FontSize
-      value: 12
-      objectReference: {fileID: 0}
-    - target: {fileID: 2481206205874348923, guid: 8ff3c8e2f912d874885d79b3d40f4c13,
-        type: 3}
-      propertyPath: m_FontData.m_MinSize
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8ff3c8e2f912d874885d79b3d40f4c13, type: 3}

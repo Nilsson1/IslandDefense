@@ -3,23 +3,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
+using System.IO;
 
 public class UIHandler : MonoBehaviour
 {
     UnitController player;
     CharacterStats stats;
 
+    public Canvas canvas;
+
     private Text levelUI;
     private Text damageUI;
     private Text healthUI;
     private Text armorUI;
     private Text enemyInfoUI;
+    private bool showBuildUIOnMouse = false;
 
     // Start is called before the first frame update
     void Start()
     {
         player = UnitController.instance;
-
         levelUI = GameObject.Find("Level").GetComponent<Text>();
         damageUI = GameObject.Find("Damage").GetComponent<Text>();
         healthUI = GameObject.Find("Health").GetComponent<Text>();
@@ -56,6 +59,8 @@ public class UIHandler : MonoBehaviour
         //enemyInfoUI.text = "PlayerType " + leftMouseSelectEvent.selectedGameObject.GetComponentInParent<PlayerManager>().playerType.ToString();
     }
 
+
+
     void OnLeftMouseSelect(LeftMouseSelectEvent leftMouseSelectEvent)
     {
         if (leftMouseSelectEvent.selectedGameObject.GetComponent<CharacterStats>())
@@ -90,5 +95,7 @@ public class UIHandler : MonoBehaviour
         BuilderEvent build = new BuilderEvent();
         build.buildMode = true;
         build.FireEvent();
+
+        showBuildUIOnMouse = true;
     }
 }

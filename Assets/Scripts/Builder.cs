@@ -7,9 +7,12 @@ public class Builder : MonoBehaviourPunCallbacks
 {
     public float gridSize;
 
+    public Canvas canvas;
     private Vector3 truePos;
     private Vector3 mouseStartPos;
     private bool buildMode = false;
+    private bool buildObject = false;
+    private bool buildMultipleObjects = false;
 
     private PhotonView PV;
 
@@ -33,34 +36,78 @@ public class Builder : MonoBehaviourPunCallbacks
             buildMode = false;
         }
 
-        if (Input.GetMouseButtonDown(0) && buildMode)
+        if (Input.GetMouseButtonDown(0))
         {
-            ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            buildObject = true;
+        }
+
+        if(Input.GetKey(KeyCode.LeftShift))
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                buildMultipleObjects = true;
+                Debug.Log("Multiple presssed!");
+            }
+        }
+    }
+
+    private IEnumerator BuildModeActivate()
+    {
+        buildMultipleObjects = false;
+        buildObject = false;
+        buildMode = true;
+        bool runLoop = true;
+        Cursor.visible = false;
+        while (runLoop)
+        {
+            Debug.Log("Buildmode: " + buildMode);
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
 
             if (Physics.Raycast(ray, out hit))
             {
-                mouseStartPos.x = hit.point.x;
-                mouseStartPos.y = hit.collider.transform.position.y + 1;
-                mouseStartPos.z = hit.point.z;
-                Debug.Log("Hit: " + hit.collider + "x, y, z: " + mouseStartPos.x + " " + mouseStartPos.y + " " + mouseStartPos.z);
+                Vector3 newPoint = hit.point;
+                newPoint.x -= 0.005f;
+                newPoint.z -= 0.005f;
+                newPoint.y = hit.collider.transform.position.y + 0.51f;
+                truePos = Vector3.zero;
+
+                truePos.x = Mathf.Floor(newPoint.x / gridSize) * gridSize;
+                truePos.y = newPoint.y;
+                truePos.z = Mathf.Floor(newPoint.z / gridSize) * gridSize;
+
+                canvas.transform.position = truePos;
+
+
+                if (buildObject || buildMultipleObjects)
+                {
+                    Debug.Log("LeftMouse pressed!");
+                    SpawnUnitEvent spawnUnit = new SpawnUnitEvent();
+                    Transform parent = gameObject.transform.parent;
+                    spawnUnit.viewID = parent.GetComponent<PhotonView>().ViewID;
+                    spawnUnit.uNIT_TYPE = SpawnUnitEvent.UNIT_TYPE.WALL;
+                    spawnUnit.position = new Vector3(truePos.x, hit.collider.transform.position.y +1, truePos.z);
+                    spawnUnit.spawner = parent;
+                    spawnUnit.objectType = ObjectType.WALL;
+                    Debug.Log(spawnUnit.uNIT_TYPE);
+                    spawnUnit.FireEvent();
+
+                    truePos = Vector3.zero;
+                    buildMode = false;
+                    Cursor.visible = true;
+                    runLoop = false;
+                }
+                if (buildMultipleObjects)
+                {
+                    Debug.Log("Start again!");
+                    buildMode = true;
+                }
             }
-
-            truePos.x = Mathf.Floor(mouseStartPos.x / gridSize) * gridSize;
-            truePos.y = Mathf.Floor(mouseStartPos.y / gridSize) * gridSize;
-            truePos.z = Mathf.Floor(mouseStartPos.z / gridSize) * gridSize;
-
-            SpawnUnitEvent spawnUnit = new SpawnUnitEvent();
-            Transform parent = gameObject.transform.parent;
-            spawnUnit.viewID = parent.GetComponent<PhotonView>().ViewID;
-            spawnUnit.uNIT_TYPE = SpawnUnitEvent.UNIT_TYPE.WALL;
-            spawnUnit.position = truePos;
-            spawnUnit.spawner = parent;
-            spawnUnit.objectType = ObjectType.WALL;
-            Debug.Log(spawnUnit.uNIT_TYPE);
-            spawnUnit.FireEvent();
-
-            truePos = Vector3.zero;
+            yield return new WaitForEndOfFrame();
         }
+        Debug.Log("Stopping Builder");
+        if(buildMode)
+            StartCoroutine("BuildModeActivate");
     }
 
     private void OnBuilderEvent(BuilderEvent builderEvent)
@@ -68,6 +115,9 @@ public class Builder : MonoBehaviourPunCallbacks
         if(PV.IsMine)
         {
             buildMode = builderEvent.buildMode;
+            canvas.enabled = true;
+            if (buildMode)
+                StartCoroutine("BuildModeActivate");
         }
     }
 }
